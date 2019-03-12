@@ -1,5 +1,4 @@
 
-library(prophet)
 library(pageviews)
 library(dplyr)
 library(plotly)
@@ -7,12 +6,17 @@ library(shiny)
 library(RcppRoll)
 gc()
 
+
+#######################################
+###  Server file for the Shiny app  ###
+#######################################
+
+## can be set to other languages as well
 Sys.setlocale(locale =  "persian")
 
 shinyServer(function(input, output) {
   
-  
-  df <- reactive({
+    df <- reactive({
     df = data.frame(matrix(vector(), 0, 8,
                            dimnames=list(c(), c("project" ,"language" ,"article", "access",
                                                 "granularity", "date", "rank", "views"))))
@@ -58,13 +62,14 @@ shinyServer(function(input, output) {
                                 , user_type = c("user"), platform = c("all"))   %>% 
        group_by(article)   %>% 
        mutate(avg3 = roll_meanr(x = views, n=3, align = "right", fill = c(NA,NA,NA))) %>% as.data.frame()
+     ### use a moving average to fill in the blanks
     })
   
   
 
    output$articlePlot <- renderPlotly({
      arts <- arts()
-     plot_ly(x = ~date, y = ~avg3,
+     plot_ly(x = ~ date, y = ~ avg3,
              mode = 'lines',
              color= ~factor(article),
              data= arts)
@@ -72,9 +77,7 @@ shinyServer(function(input, output) {
    
   output$dataTable <- renderDataTable(df2())
  
-  # output$dateRangeText <- renderText({
-  #  capture.output(head(arts()))
-  #   })
+  
 
 })
 
